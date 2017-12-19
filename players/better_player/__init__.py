@@ -58,7 +58,8 @@ class Player(abstract.AbstractPlayer):
         return False
 
     def getLegalTilesAround(self, x, y):
-        aroundTile = {(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)}
+        aroundTile = {(0, 1), (1, 0), (0, -1), (-1, 0), (-1, -1), (1, 1), (-1, 1), (1, -1)}
+
         tiles = []
         for around in aroundTile:
             if self.legalTile(x+around[0], y+around[1]):
@@ -84,8 +85,17 @@ class Player(abstract.AbstractPlayer):
                         my_closeness += 1
                     elif state.board[legalTile[0]][legalTile[1]] == OPPONENT_COLOR[self.color]:
                         opp_closeness += 1
-        corners_util = 25 * (my_corners - opp_corners)
-        closeness_util = -12.5 * (my_closeness - opp_closeness)
+        if my_corners + opp_corners == 0:
+            corners_util = 0.5
+        else:
+            corners_util = my_corners / (my_corners + opp_corners)
+
+        if my_closeness > opp_closeness:
+            closeness_util = -my_closeness / (my_closeness + opp_closeness)
+        elif my_closeness < opp_closeness:
+            closeness_util = my_closeness / (my_closeness + opp_closeness)
+        else:
+            closeness_util = 0.5
         return corners_util, closeness_util
 
     def flipBoard(self, board):
@@ -101,10 +111,15 @@ class Player(abstract.AbstractPlayer):
         self.flipBoard(state.board)
         opp_moves = len(state.get_possible_moves())
         self.flipBoard(state.board)
-        if my_moves > opp_moves :
-            return (100.0 * my_moves) / (my_moves + opp_moves)
+
+        if my_moves == 0:
+            return -INFINITY
+        if opp_moves == 0:
+            return INFINITY
+        if my_moves > opp_moves:
+            return my_moves / (my_moves + opp_moves)
         elif my_moves < opp_moves:
-            return -(100.0 * opp_moves) / (my_moves + opp_moves)
+            return - opp_moves / (my_moves + opp_moves)
         else:
             return 0
 
@@ -124,10 +139,10 @@ class Player(abstract.AbstractPlayer):
             for y in range(BOARD_COLS):
                 if state.board[x][y] == self.color:
                     my_tiles += 1
-                    d += (scores[x])[y]
+                    d += scores[x][y]
                 if state.board[x][y] == OPPONENT_COLOR[self.color]:
                     opp_tiles += 1
-                    d -= (scores[x])[y]
+                    d -= scores[x][y]
         my_front_tiles = 0
         opp_front_tiles = 0
 
@@ -141,32 +156,31 @@ class Player(abstract.AbstractPlayer):
                             else:
                                 opp_front_tiles += 1
                             break
-        if my_front_tiles > opp_front_tiles:
-            front_util = -(100.0 * my_front_tiles) / (my_front_tiles + opp_front_tiles)
-        elif my_front_tiles < opp_front_tiles:
-            front_util = (100.0 * opp_front_tiles) / (my_front_tiles + opp_front_tiles)
-        else:
-            front_util = 0
 
-        if my_tiles > opp_tiles:
-            parity_util = (100.0 * my_tiles) / (my_tiles + opp_tiles)
-        elif my_tiles < opp_tiles:
-            parity_util = -(100.0 * opp_tiles) / (my_tiles + opp_tiles)
+
+        if my_front_tiles > opp_front_tiles:
+            front_util = my_front_tiles / (my_front_tiles + opp_front_tiles)
+        elif my_front_tiles < opp_front_tiles:
+            front_util = -my_front_tiles / (my_front_tiles + opp_front_tiles)
         else:
-            parity_util = 0
+            front_util = 0.5
+        if my_tiles == 0:
+            parity_util = -INFINITY
+        elif opp_tiles == 0:
+            parity_util = INFINITY
+        else:
+            parity_util = my_tiles / (my_tiles + opp_tiles)
         return d, front_util, parity_util
 
     def utility(self, state):
         corners_util, closeness_util = self.cornerUtil(state)
         mobility_util = self.mobilityUtil(state)
         scores_util, front_util, parity_util = self.stabilityUtil(state)
-        print("Parity ", parity_util, " corners: ", corners_util, " closeness: ", closeness_util, "mobility: ", mobility_util, "front: ", front_util, "scores: ", scores_util)
-        return (10.0 * parity_util) + \
-               (800.0 * corners_util) + \
-               (380.0 * closeness_util) + \
-               (80.0 * mobility_util) + \
-               (75.0 * front_util) + \
-               (10.0 * scores_util)
+        return (10 * parity_util) + \
+               (2 * corners_util) + \
+               (2 * closeness_util) + \
+               (7.5 * mobility_util) + \
+               (1 * front_util)
         
     def selective_deepening_criterion(self, state):
         # Simple player does not selectively deepen into certain nodes.
@@ -176,6 +190,6 @@ class Player(abstract.AbstractPlayer):
         return (time.time() - self.clock) >= self.time_for_current_move
 
     def __repr__(self):
-        return '{} {}'.format(abstract.AbstractPlayer.__repr__(self), 'simple')
+        return '{} {}'.format(abstract.AbstractPlayer.__repr__(self), 'better')
 
 # c:\python35\python.exe run_game.py 3 3 3 y simple_player random_player
