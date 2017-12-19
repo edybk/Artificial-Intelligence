@@ -58,7 +58,8 @@ class Player(abstract.AbstractPlayer):
         return False
 
     def getLegalTilesAround(self, x, y):
-        aroundTile = {(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)}
+        aroundTile = {(0, 1), (1, 0), (0, -1), (-1, 0), (-1, -1), (1, 1), (-1, 1), (1, -1)}
+
         tiles = []
         for around in aroundTile:
             if self.legalTile(x+around[0], y+around[1]):
@@ -124,10 +125,10 @@ class Player(abstract.AbstractPlayer):
             for y in range(BOARD_COLS):
                 if state.board[x][y] == self.color:
                     my_tiles += 1
-                    d += (scores[x])[y]
+                    d += scores[x][y]
                 if state.board[x][y] == OPPONENT_COLOR[self.color]:
                     opp_tiles += 1
-                    d -= (scores[x])[y]
+                    d -= scores[x][y]
         my_front_tiles = 0
         opp_front_tiles = 0
 
