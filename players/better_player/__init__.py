@@ -116,6 +116,7 @@ class Player(abstract.AbstractPlayer):
             return -INFINITY
         if opp_moves == 0:
             return INFINITY
+
         if my_moves > opp_moves:
             return my_moves / (my_moves + opp_moves)
         elif my_moves < opp_moves:
@@ -181,6 +182,7 @@ class Player(abstract.AbstractPlayer):
                (2 * closeness_util) + \
                (7.5 * mobility_util) + \
                (1 * front_util)
+
         
     def selective_deepening_criterion(self, state):
         # Simple player does not selectively deepen into certain nodes.

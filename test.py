@@ -5,7 +5,7 @@ from utils import INFINITY, run_with_limited_time, ExceededTimeError
 from Reversi.consts import *
 import time
 import copy
-verbose = "n"
+verbose = "y"
 x_player = "better_player"
 o_player = "simple_player"
 k = 5
@@ -28,6 +28,14 @@ runner_o_first.run()
 #for round in range(3):
 #    runner_o_first.run()
 
+#print("X random starts 3 times:")
+
+#for round in range(3):
+#    runner_x_first.run()
+
+#print("X simple starts 3 times:")
+#for round in range(3):
+#    runner_o_first.run()
 #print("X random starts 3 times:")
 
 #for round in range(3):
